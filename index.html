@@ -21,13 +21,24 @@
         AID
       </div>
       <div>
-        <h1 class="text-lg font-bold text-slate-100 leading-none">AI Injury Detector</h1>
-        <p class="text-[11px] text-slate-400 mt-0.5">Automated First Aid Assessment</p>
+        <h1 id="uiHeaderTitle" class="text-lg font-bold text-slate-100 leading-none">AI Injury Detector</h1>
+        <p id="uiHeaderSub" class="text-[11px] text-slate-400 mt-0.5">Automated First Aid Assessment</p>
       </div>
     </div>
-    <div id="statusBadge" class="text-xs font-medium px-3 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400 flex items-center gap-2">
-      <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-      <span>Initializing Engine...</span>
+
+    <div class="flex items-center gap-3">
+      <!-- Language Selector Dropdown -->
+      <select id="langSelect" onchange="changeLanguage(this.value)" class="bg-slate-900 text-slate-200 border border-slate-700/80 text-xs font-medium rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-500 cursor-pointer">
+        <option value="en">English</option>
+        <option value="hi">हिन्दी (Hindi)</option>
+        <option value="kn">ಕನ್ನಡ (Kannada)</option>
+      </select>
+
+      <!-- Model Status Badge -->
+      <div id="statusBadge" class="text-xs font-medium px-3 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400 flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+        <span id="uiStatusText">Initializing Engine...</span>
+      </div>
     </div>
   </header>
 
@@ -46,14 +57,14 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
           </svg>
         </div>
-        <p class="text-sm font-semibold text-slate-200 group-hover:text-indigo-300">Click or drag image to analyze</p>
-        <p class="text-xs text-slate-500 mt-1">Supports JPG, PNG, WEBP</p>
+        <p id="uiUploadText" class="text-sm font-semibold text-slate-200 group-hover:text-indigo-300">Click or drag image to analyze</p>
+        <p id="uiUploadSubText" class="text-xs text-slate-500 mt-1">Supports JPG, PNG, WEBP</p>
       </div>
 
       <!-- Preview Image Frame -->
       <div id="previewWrapper" class="hidden w-full flex flex-col items-center gap-4">
         <img id="imagePreview" class="max-h-80 w-full object-contain rounded-xl border border-slate-800 bg-slate-950 shadow-inner" alt="Preview" />
-        <button onclick="document.getElementById('imageInput').click()" class="text-xs text-indigo-400 hover:text-indigo-300 font-medium underline underline-offset-4">
+        <button id="uiReuploadBtn" onclick="document.getElementById('imageInput').click()" class="text-xs text-indigo-400 hover:text-indigo-300 font-medium underline underline-offset-4">
           Upload different photo
         </button>
       </div>
@@ -63,7 +74,15 @@
     <section class="md:col-span-7 bg-slate-900/50 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between min-h-[420px]">
       <div id="resultsContent">
         <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-800">
-          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Diagnosis & First Aid Guidance</h2>
+          <h2 id="uiGuidanceHeader" class="text-xs font-bold uppercase tracking-wider text-slate-400">Diagnosis & First Aid Guidance</h2>
+          
+          <!-- Text-to-Speech Talk Button -->
+          <button id="talkBtn" onclick="toggleSpeech()" class="hidden bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 font-medium text-xs px-3 py-1.5 rounded-lg flex items-center gap-2 transition">
+            <svg id="speakerIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
+            </svg>
+            <span id="talkBtnLabel">Listen Guidance</span>
+          </button>
         </div>
         
         <div id="emptyState" class="text-center py-16 text-slate-500 text-sm">
@@ -74,7 +93,7 @@
           <!-- Primary Diagnosis Header -->
           <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl flex items-center justify-between">
             <div>
-              <span class="text-xs text-slate-400 font-medium uppercase tracking-wider">Detected Condition</span>
+              <span id="uiDetectedLabel" class="text-xs text-slate-400 font-medium uppercase tracking-wider">Detected Condition</span>
               <h3 id="detectedClass" class="text-2xl font-extrabold text-white mt-0.5">---</h3>
             </div>
             <span id="severityBadge" class="text-xs font-bold px-3 py-1 rounded-full border">---</span>
@@ -83,18 +102,18 @@
           <!-- Metadata Grid -->
           <div class="grid grid-cols-2 gap-4">
             <div class="bg-slate-950/60 border border-slate-800/80 p-3.5 rounded-xl">
-              <span class="text-[11px] font-semibold text-slate-400 uppercase block mb-1">Expected Symptoms</span>
+              <span id="uiSymptomsLabel" class="text-[11px] font-semibold text-slate-400 uppercase block mb-1">Expected Symptoms</span>
               <p id="symptomsText" class="text-xs text-slate-200 leading-relaxed">---</p>
             </div>
             <div class="bg-slate-950/60 border border-slate-800/80 p-3.5 rounded-xl">
-              <span class="text-[11px] font-semibold text-slate-400 uppercase block mb-1">Estimated Recovery</span>
+              <span id="uiRecoveryLabel" class="text-[11px] font-semibold text-slate-400 uppercase block mb-1">Estimated Recovery</span>
               <p id="recoveryText" class="text-xs text-slate-200 leading-relaxed">---</p>
             </div>
           </div>
 
           <!-- First Aid Protocol -->
           <div class="bg-slate-950/60 border border-slate-800/80 p-4 rounded-xl">
-            <span class="text-xs font-bold uppercase tracking-wider text-indigo-400 block mb-3">Recommended First Aid Steps</span>
+            <span id="uiTreatmentLabel" class="text-xs font-bold uppercase tracking-wider text-indigo-400 block mb-3">Recommended First Aid Steps</span>
             <ol id="treatmentList" class="list-decimal list-inside text-xs text-slate-300 space-y-2">
             </ol>
           </div>
@@ -106,7 +125,7 @@
         <svg class="w-4 h-4 text-slate-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
         </svg>
-        <span>This tool provides primary visual classification only. Seek emergency medical attention for severe, deep, or non-responsive injuries.</span>
+        <span id="uiDisclaimer">This tool provides primary visual classification only. Seek emergency medical attention for severe, deep, or non-responsive injuries.</span>
       </div>
     </section>
 
@@ -114,131 +133,272 @@
 
   <script>
     let model;
+    let currentLanguage = 'en';
+    let currentRawCondition = null;
+    let isSpeaking = false;
     const MODEL_PATH = "./model/";
 
-    // Medical Protocol Mapping
-    const MEDICAL_PROTOCOLS = {
-      "Mild Cut": {
-        severity: "Low",
-        severityColor: "border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
-        symptoms: "Minor bleeding, mild localized pain, slight redness around edges.",
-        recovery: "3 to 7 days",
-        steps: [
-          "Wash hands thoroughly before treating the area.",
-          "Apply gentle pressure with a clean cloth to stop minor bleeding.",
-          "Rinse the wound thoroughly with cool water and mild soap.",
-          "Apply a thin layer of antibacterial ointment.",
-          "Cover with a sterile adhesive bandage."
-        ]
+    // UI Strings Localization Table
+    const UI_TRANSLATIONS = {
+      en: {
+        title: "AI Injury Detector",
+        sub: "Automated First Aid Assessment",
+        statusReady: "Engine Ready",
+        statusFailed: "Model Loading Failed",
+        uploadTitle: "Click or drag image to analyze",
+        uploadSub: "Supports JPG, PNG, WEBP",
+        reupload: "Upload different photo",
+        guidanceHeader: "Diagnosis & First Aid Guidance",
+        emptyState: "Upload an image to detect injury type and generate treatment instructions.",
+        detectedLabel: "Detected Condition",
+        symptomsLabel: "Expected Symptoms",
+        recoveryLabel: "Estimated Recovery",
+        treatmentLabel: "Recommended First Aid Steps",
+        disclaimer: "This tool provides primary visual classification only. Seek emergency medical attention for severe, deep, or non-responsive injuries.",
+        talkListen: "Listen Guidance",
+        talkStop: "Stop Audio",
+        severityPrefix: "Severity: "
       },
-      "Severe Cut": {
-        severity: "High",
-        severityColor: "border-rose-500/30 bg-rose-500/10 text-rose-400",
-        symptoms: "Continuous bleeding, visible subcutaneous fat or muscle, intense sharp pain.",
-        recovery: "2 to 4 weeks (Requires stitches)",
-        steps: [
-          "Apply firm, continuous direct pressure with a clean cloth or bandage.",
-          "Elevate the injured area above the heart if possible.",
-          "Do not remove embedded objects if present.",
-          "Seek immediate emergency medical assistance or go to urgent care."
-        ]
+      hi: {
+        title: "एआई चोट पहचानकर्ता",
+        sub: "स्वचालित प्राथमिक चिकित्सा मूल्यांकन",
+        statusReady: "इंजन तैयार है",
+        statusFailed: "मॉडल लोड विफल",
+        uploadTitle: "जांच के लिए चित्र पर क्लिक करें या ड्रैग करें",
+        uploadSub: "JPG, PNG, WEBP समर्थित हैं",
+        reupload: "दूसरी तस्वीर अपलोड करें",
+        guidanceHeader: "निदान और प्राथमिक चिकित्सा मार्गदर्शन",
+        emptyState: "चोट का प्रकार खोजने और उपचार के निर्देश पाने के लिए एक छवि अपलोड करें।",
+        detectedLabel: "पहचानी गई स्थिति",
+        symptomsLabel: "संभावित लक्षण",
+        recoveryLabel: "अनुमानित सुधार समय",
+        treatmentLabel: "अनुशंसित प्राथमिक चिकित्सा चरण",
+        disclaimer: "यह उपकरण केवल दृश्य वर्गीकरण प्रदान करता है। गंभीर या गहरी चोटों के लिए आपातकालीन चिकित्सा सहायता लें।",
+        talkListen: "मार्गदर्शन सुनें",
+        talkStop: "ऑडियो रोकें",
+        severityPrefix: "गंभीरता: "
       },
-      "Mild Bruise": {
-        severity: "Low",
-        severityColor: "border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
-        symptoms: "Blue/purple discoloration, mild tenderness to touch, minor swelling.",
-        recovery: "1 to 2 weeks",
-        steps: [
-          "Apply a cold pack wrapped in a cloth to the area for 15–20 minutes at a time.",
-          "Rest the affected limb or area to prevent further inflammation.",
-          "After 48 hours, apply warm compresses to improve circulation and speed up healing."
-        ]
-      },
-      "Severe Bruise": {
-        severity: "Moderate to High",
-        severityColor: "border-amber-500/30 bg-amber-500/10 text-amber-400",
-        symptoms: "Extensive dark purple/black swelling, severe pain upon movement, firmness underneath skin.",
-        recovery: "3 to 6 weeks",
-        steps: [
-          "Apply ice packs immediately for 20 minutes every 2 hours.",
-          "Elevate the area above heart level to reduce blood pooling.",
-          "Avoid strenuous activity involving the bruised area.",
-          "Consult a healthcare professional if swelling expands rapidly or numbness occurs."
-        ]
-      },
-      "Mild Rash": {
-        severity: "Low",
-        severityColor: "border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
-        symptoms: "Localized redness, slight itchiness, small bumps without fluid.",
-        recovery: "3 to 5 days",
-        steps: [
-          "Wash gently with cool water and a mild, fragrance-free cleanser.",
-          "Apply hydrocortisone cream or calamine lotion to relieve itching.",
-          "Avoid scratching the skin to prevent secondary bacterial infection."
-        ]
-      },
-      "Severe Rash": {
-        severity: "High",
-        severityColor: "border-rose-500/30 bg-rose-500/10 text-rose-400",
-        symptoms: "Widespread blistering, extreme itching/burning, fever, spreading redness.",
-        recovery: "1 to 3 weeks",
-        steps: [
-          "Apply cool, damp compresses to soothe inflamed skin.",
-          "Do not pop or drain any formed blisters.",
-          "Avoid all potential chemical or cosmetic irritants.",
-          "Consult a doctor immediately for oral antihistamines or prescription steroid treatment."
-        ]
-      },
-      "Mild Burn": {
-        severity: "Low to Moderate",
-        severityColor: "border-amber-500/30 bg-amber-500/10 text-amber-400",
-        symptoms: "Redness, localized heat, minor swelling, pain without open blisters.",
-        recovery: "5 to 10 days",
-        steps: [
-          "Hold burned area under cool (not ice-cold) running water for 10–15 minutes.",
-          "Apply pure aloe vera gel or petroleum jelly to keep the skin hydrated.",
-          "Cover loosely with a sterile, non-stick gauze bandage."
-        ]
-      },
-      "Severe Burn": {
-        severity: "Critical",
-        severityColor: "border-rose-500/30 bg-rose-500/10 text-rose-400",
-        symptoms: "Blistering, charred skin, white or leathery appearance, intense pain or numbness.",
-        recovery: "4+ weeks (Requires specialist care)",
-        steps: [
-          "Call emergency medical services immediately.",
-          "Do not apply cold water or ice to wide/deep severe burns.",
-          "Do not remove burned clothing stuck to the skin.",
-          "Cover the burn loosely with a sterile, dry bandage or clean cloth."
-        ]
-      },
-      "Normal Skin": {
-        severity: "None",
-        severityColor: "border-slate-500/30 bg-slate-500/10 text-slate-400",
-        symptoms: "No evident cutaneous injury, swelling, or active lesions.",
-        recovery: "N/A",
-        steps: [
-          "No immediate first aid action is required.",
-          "Maintain daily skin hygiene and monitor for changes if pain or irritation develops."
-        ]
+      kn: {
+        title: "ಎಐ ಗಾಯ ಪತ್ತೆಗಾರ",
+        sub: "ಸ್ವಯಂಚಾಲಿತ ಪ್ರಥಮ ಚಿಕಿತ್ಸೆ ಮೌಲ್ಯಮಾಪನ",
+        statusReady: "ಎಂಜಿನ ಸಿದ್ಧವಾಗಿದೆ",
+        statusFailed: "ಮಾಡೆಲ್ ಲೋಡ್ ವಿಫಲವಾಗಿದೆ",
+        uploadTitle: "ವಿಶ್ಲೇಷಿಸಲು ಚಿತ್ರವನ್ನು ಕ್ಲಿಕ್ ಮಾಡಿ ಅಥವಾ ಡ್ರ್ಯಾಗ್ ಮಾಡಿ",
+        uploadSub: "JPG, PNG, WEBP ಬೆಂಬಲಿತವಾಗಿದೆ",
+        reupload: "ಮತ್ತೊಂದು ಫೋಟೋ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ",
+        guidanceHeader: "ರೋಗನಿರ್ಣಯ ಮತ್ತು ಪ್ರಥಮ ಚಿಕಿತ್ಸಾ ಮಾರ್ಗದರ್ಶನ",
+        emptyState: "ಗಾಯದ ಪ್ರಕಾರವನ್ನು ಪತ್ತೆಹಚ್ಚಲು ಮತ್ತು ಚಿಕಿತ್ಸಾ ಸೂಚನೆಗಳನ್ನು ಪಡೆಯಲು ಚಿತ್ರವನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ.",
+        detectedLabel: "ಪತ್ತೆಯಾದ ಸ್ಥಿತಿ",
+        symptomsLabel: "ನಿರೀಕ್ಷಿತ ರೋಗಲಕ್ಷಣಗಳು",
+        recoveryLabel: "ಚೇತರಿಕೆಯ ಅಂದಾಜು ಸಮಯ",
+        treatmentLabel: "ಶಿಫಾರಸು ಮಾಡಿದ ಪ್ರಥಮ ಚಿಕಿತ್ಸಾ ಹಂತಗಳು",
+        disclaimer: "ಈ ಉಪಕರಣವು ದೃಶ್ಯ ವರ್ಗೀಕರಣವನ್ನು ಮಾತ್ರ ಒದಗಿಸುತ್ತದೆ. ತೀವ್ರವಾದ ಅಥವಾ ಆಳವಾದ ಗಾಯಗಳಿಗೆ ತಕ್ಷಣ ವೈದ್ಯಕೀಯ ನೆರವು ಪಡೆಯಿರಿ.",
+        talkListen: "ಮಾರ್ಗದರ್ಶನ ಆಲಿಸಿ",
+        talkStop: "ಆಡಿಯೋ ನಿಲ್ಲಿಸಿ",
+        severityPrefix: "ತೀವ್ರತೆ: "
       }
     };
 
+    // Full Local Medical Knowledge Graph (English, Hindi, Kannada)
+    const MEDICAL_DATA = {
+      "Mild Cut": {
+        severity: { en: "Low", hi: "कम", kn: "ಕಡಿಮೆ" },
+        severityColor: "border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
+        name: { en: "Mild Cut", hi: "हल्का कट", kn: "ಸಾಧಾರಣ ಗಾಯ" },
+        symptoms: {
+          en: "Minor bleeding, mild localized pain, slight redness around edges.",
+          hi: "मामूली रक्तस्राव, हल्का स्थानीय दर्द, किनारों के आसपास हल्की लाली।",
+          kn: "ಸ್ವಲ್ಪ ರಕ್ತಸ್ರಾವ, ಹಗುರವಾದ ನೋವು, ಅಂಚುಗಳ ಸುತ್ತಲೂ ಕೆಂಪು ಬಣ್ಣ."
+        },
+        recovery: { en: "3 to 7 days", hi: "3 से 7 दिन", kn: "3 ರಿಂದ 7 ದಿನಗಳು" },
+        steps: {
+          en: ["Wash hands thoroughly before treating.", "Apply gentle pressure with a clean cloth to stop bleeding.", "Rinse the wound thoroughly with cool water and mild soap.", "Apply antibacterial ointment.", "Cover with a sterile adhesive bandage."],
+          hi: ["इलाज से पहले हाथों को अच्छी तरह धोएं।", "खून रोकने के लिए साफ कपड़े से हल्का दबाव डालें।", "घाव को ठंडे पानी और हल्के साबुन से धोएं।", "एंटीबायोटिक मलम लगाएं।", "पट्टी या बैंडेज से ढकें।"],
+          kn: ["ಚಿಕಿತ್ಸೆ ನೀಡುವ ಮೊದಲು ಕೈಗಳನ್ನು ಚೆನ್ನಾಗಿ ತೊಳೆಯಿರಿ.", "ರಕ್ತಸ್ರಾವವನ್ನು ನಿಲ್ಲಿಸಲು ಸ್ವಚ್ಛ ಬಟ್ಟೆಯಿಂದ ಒತ್ತಿ.", "ಗಾಯವನ್ನು ತಣ್ಣೀರು ಮತ್ತು ಸಾಬೂನಿನಿಂದ ತೊಳೆಯಿರಿ.", "ಆಂಟಿಬ್ಯಾಕ್ಟೀರಿಯಲ್ ಮುಲಾಮು ಹಚ್ಚಿ.", "ಬ್ಯಾಂಡೇಜ್‌ನಿಂದ ಮುಚ್ಚಿ."]
+        }
+      },
+      "Severe Cut": {
+        severity: { en: "High", hi: "उच्च", kn: "ಹೆಚ್ಚು" },
+        severityColor: "border-rose-500/30 bg-rose-500/10 text-rose-400",
+        name: { en: "Severe Cut", hi: "गंभीर कट", kn: "ತೀವ್ರ ಗಾಯ" },
+        symptoms: {
+          en: "Continuous bleeding, visible subcutaneous fat or muscle, intense sharp pain.",
+          hi: "लगातार खून बहना, अंदरूनी ऊतक दिखाई देना, तेज दर्द।",
+          kn: "ನಿರಂತರ ರಕ್ತಸ್ರಾವ, ಆಳವಾದ ಗಾಯ, ತೀವ್ರ ನೋವು."
+        },
+        recovery: { en: "2 to 4 weeks (Requires stitches)", hi: "2 से 4 सप्ताह (टांके की आवश्यकता)", kn: "2 ರಿಂದ 4 ವಾರಗಳು (ಹೊಲಿಗೆ ಅಗತ್ಯವಿದೆ)" },
+        steps: {
+          en: ["Apply firm, continuous direct pressure with a clean cloth.", "Elevate the injured area above heart level if possible.", "Do not remove embedded objects.", "Seek immediate emergency medical care."],
+          hi: ["साफ कपड़े से लगातार मजबूत दबाव बनाएं।", "यदि संभव हो तो घायल हिस्से को दिल के स्तर से ऊपर उठाएं।", "अंदर फंसी हुई वस्तुओं को न निकालें।", "तुरंत आपातकालीन चिकित्सा सहायता लें।"],
+          kn: ["ಸ್ವಚ್ಛ ಬಟ್ಟೆಯಿಂದ ನಿರಂತರವಾಗಿ ಒತ್ತಡ ಹೇರಿ.", "ಸಾಧ್ಯವಾದರೆ ಗಾಯಗೊಂಡ ಭಾಗವನ್ನು ಮೇಲಕ್ಕೆ ಎತ್ತಿ.", "ಗಾಯದ ಒಳಗಿರುವ ವಸ್ತುಗಳನ್ನು ತೆಗೆಯಬೇಡಿ.", "ತಕ್ಷಣ ತುರ್ತು ವೈದ್ಯಕೀಯ ನೆರವು ಪಡೆಯಿರಿ."]
+        }
+      },
+      "Mild Bruise": {
+        severity: { en: "Low", hi: "कम", kn: "ಕಡಿಮೆ" },
+        severityColor: "border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
+        name: { en: "Mild Bruise", hi: "हल्की खरोंच/छाल", kn: "ಸಾಧಾರಣ ಕಂದೂಗಾಯ" },
+        symptoms: {
+          en: "Blue/purple discoloration, mild tenderness to touch, minor swelling.",
+          hi: "नीला/बैंगनी रंग पड़ना, छूने पर हल्का दर्द, मामूली सूजन।",
+          kn: "ನೀಲಿ/ನೇರಳೆ ಬಣ್ಣ ಬದಲಾವಣೆ, ಮುಟ್ಟಿದಾಗ ಸಣ್ಣ ನೋವು, ಸ್ವಲ್ಪ ಬಾಪು."
+        },
+        recovery: { en: "1 to 2 weeks", hi: "1 से 2 सप्ताह", kn: "1 ರಿಂದ 2 ವಾರಗಳು" },
+        steps: {
+          en: ["Apply a cold pack wrapped in a cloth for 15–20 minutes.", "Rest the affected area to prevent inflammation.", "After 48 hours, apply warm compresses to speed up healing."],
+          hi: ["कपड़े में लपेटा हुआ बर्फ का पैक 15-20 मिनट के लिए लगाएं।", "सूजन रोकने के लिए प्रभावित हिस्से को आराम दें।", "48 घंटे बाद, खून का दौरा बढ़ाने के लिए हल्की सिकाई करें।"],
+          kn: ["ಬಟ್ಟೆಯಲ್ಲಿ ಸಾರಿದ ಐಸ್ ಪ್ಯಾಕ್ ಅನ್ನು 15-20 ನಿಮಿಷಗಳ ಕಾಲ ಇಡಿ.", "ಭಾಗಕ್ಕೆ ವಿಶ್ರಾಂತಿ ನೀಡಿ.", "48 ಗಂಟೆಗಳ ನಂತರ, ಬೆಚ್ಚಗಿನ ಬಟ್ಟೆಯಿಂದ ಶಾಖ ಕೊಡಿ."]
+        }
+      },
+      "Severe Bruise": {
+        severity: { en: "Moderate to High", hi: "मध्यम से उच्च", kn: "ಮಧ್ಯಮದಿಂದ ಹೆಚ್ಚು" },
+        severityColor: "border-amber-500/30 bg-amber-500/10 text-amber-400",
+        name: { en: "Severe Bruise", hi: "गंभीर चोट का निशान", kn: "ತೀವ್ರ ಕಂದೂಗಾಯ" },
+        symptoms: {
+          en: "Extensive dark purple swelling, severe pain upon movement, firmness underneath skin.",
+          hi: "गहरा बैंगनी रंग, हिलाने पर तेज दर्द, त्वचा के नीचे कठोरता।",
+          kn: "ದೊಡ್ಡ ಮಟ್ಟದ ನೇರಳೆ ಬಾಪು, ಚಲನೆಯಲ್ಲಿ ತೀವ್ರ ನೋವು."
+        },
+        recovery: { en: "3 to 6 weeks", hi: "3 से 6 सप्ताह", kn: "3 ರಿಂದ 6 ವಾರಗಳು" },
+        steps: {
+          en: ["Apply ice packs immediately for 20 minutes every 2 hours.", "Elevate the area above heart level to reduce swelling.", "Avoid strenuous activity.", "Consult a doctor if swelling expands rapidly."],
+          hi: ["हर 2 घंटे में 20 मिनट के लिए तुरंत आइस पैक लगाएं।", "सूजन कम करने के लिए प्रभावित हिस्से को ऊपर उठाएं।", "कठिन गतिविधियों से बचें।", "सूजन तेजी से बढ़ने पर डॉक्टर से सलाह लें।"],
+          kn: ["ಪ್ರತಿ 2 ಗಂಟೆಗೆ 20 ನಿಮಿಷಗಳ ಕಾಲ ಐಸ್ ಪ್ಯಾಕ್ ಹಾಕಿ.", "ಬಾಪು ಕಡಿಮೆ ಮಾಡಲು ಭಾಗವನ್ನು ಎತ್ತರದಲ್ಲಿಡಿ.", "ಕಠಿಣ ಚಟುವಟಿಕೆಗಳನ್ನು ಮಾಡಬೇಡಿ.", "ಬಾಪು ಹೆಚ್ಚಾದರೆ ವೈದ್ಯರನ್ನು ಸಂಪರ್ಕಿಸಿ."]
+        }
+      },
+      "Mild Rash": {
+        severity: { en: "Low", hi: "कम", kn: "ಕಡಿಮೆ" },
+        severityColor: "border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
+        name: { en: "Mild Rash", hi: "हल्के चकत्ते", kn: "ಸಾಧಾರಣ ದದ್ದು" },
+        symptoms: {
+          en: "Localized redness, slight itchiness, small bumps without fluid.",
+          hi: "हल्की लाली, खुजली, छोटे-छोटे दाने।",
+          kn: "ಕೆಂಪು ಬಣ್ಣ, ತುರಿಕೆ, ಸಣ್ಣ ಗುಳ್ಳೆಗಳು."
+        },
+        recovery: { en: "3 to 5 days", hi: "3 से 5 दिन", kn: "3 ರಿಂದ 5 ದಿನಗಳು" },
+        steps: {
+          en: ["Wash gently with cool water and mild cleanser.", "Apply hydrocortisone cream or calamine lotion.", "Avoid scratching to prevent infection."],
+          hi: ["ठंडे पानी और हल्के साबुन से धीरे से धोएं।", "कैलामाइन लोशन या एंटी-इच क्रीम लगाएं।", "इन्फेक्शन से बचने के लिए खुजलाने से बचें।"],
+          kn: ["ತಣ್ಣೀರು ಮತ್ತು ಸಾಬೂನಿನಿಂದ ಮೃದುವಾಗಿ ತೊಳೆಯಿರಿ.", "ಕ್ಯಾಲಮೈನ್ ಲೋಷನ್ ಹಚ್ಚಿ.", "ತುರಿಕೆಯನ್ನು ಕೆರೆಯಬೇಡಿ."]
+        }
+      },
+      "Severe Rash": {
+        severity: { en: "High", hi: "उच्च", kn: "ಹೆಚ್ಚು" },
+        severityColor: "border-rose-500/30 bg-rose-500/10 text-rose-400",
+        name: { en: "Severe Rash", hi: "गंभीर चकत्ते", kn: "ತೀವ್ರ ದದ್ದು" },
+        symptoms: {
+          en: "Widespread blistering, extreme itching/burning, fever, spreading redness.",
+          hi: "फफोले पड़ना, तेज जलन व खुजली, बुखार, तेजी से फैलती लाली।",
+          kn: "ಗುಳ್ಳೆಗಳು, ತೀವ್ರ ತುರಿಕೆ ಮತ್ತು ಉರಿ, ಜ್ವರ, ಹರಡುವ ಕೆಂಪು ಬಣ್ಣ."
+        },
+        recovery: { en: "1 to 3 weeks", hi: "1 से 3 सप्ताह", kn: "1 ರಿಂದ 3 ವಾರಗಳು" },
+        steps: {
+          en: ["Apply cool, damp compresses to soothe skin.", "Do not pop or drain blisters.", "Avoid chemical irritants.", "Consult a doctor immediately."],
+          hi: ["त्वचा को शांत करने के लिए ठंडी पट्टियां लगाएं।", "फफोले न फोड़ें।", "रसायनों या कॉस्मेटिक्स से बचें।", "तुरंत डॉक्टर से संपर्क करें।"],
+          kn: ["ತಂಪಾದ ಬಟ್ಟೆಯಿಂದ ಶಾಖ ಕೊಡಿ.", "ಗುಳ್ಳೆಗಳನ್ನು ಒಡೆಯಬೇಡಿ.", "ರಾಸಾಯನಿಕಗಳಿಂದ ದೂರವಿರಿ.", "ತಕ್ಷಣ ವೈದ್ಯರನ್ನು ಭೇಟಿ ಮಾಡಿ."]
+        }
+      },
+      "Mild Burn": {
+        severity: { en: "Low to Moderate", hi: "कम से मध्यम", kn: "ಕಡಿಮೆ ಇಂದ ಮಧ್ಯಮ" },
+        severityColor: "border-amber-500/30 bg-amber-500/10 text-amber-400",
+        name: { en: "Mild Burn", hi: "हल्का जलना", kn: "ಸಾಧಾರಣ ಸುಟ್ಟ ಗಾಯ" },
+        symptoms: {
+          en: "Redness, localized heat, minor swelling, pain without open blisters.",
+          hi: "लाली, जलन, मामूली सूजन, बिना फफोले के दर्द।",
+          kn: "ಕೆಂಪು ಬಣ್ಣ, ಉರಿ, ಸ್ವಲ್ಪ ಬಾಪು, ಗಾಯವಿಲ್ಲದ ನೋವು."
+        },
+        recovery: { en: "5 to 10 days", hi: "5 से 10 दिन", kn: "5 ರಿಂದ 10 ದಿನಗಳು" },
+        steps: {
+          en: ["Hold under cool running water for 10–15 minutes.", "Apply pure aloe vera gel or petroleum jelly.", "Cover loosely with sterile gauze."],
+          hi: ["10-15 मिनट तक बहते ठंडे पानी के नीचे रखें।", "एलोवेरा जेल या पेट्रोलियम जेली लगाएं।", "साफ सूती पट्टी से ढीला बांधें।"],
+          kn: ["10-15 ನಿಮಿಷಗಳ ಕಾಲ ತಣ್ಣೀರಿನ ಅಡಿಯಲ್ಲಿ ಇಡಿ.", "ಅಲೋವೆರಾ ಜೆಲ್ ಹಚ್ಚಿ.", "ಸ್ವಚ್ಛ ಬ್ಯಾಂಡೇಜ್‌ನಿಂದ ಮುಚ್ಚಿ."]
+        }
+      },
+      "Severe Burn": {
+        severity: { en: "Critical", hi: "अत्यंत गंभीर", kn: "ಅತ್ಯಂತ ತೀವ್ರ" },
+        severityColor: "border-rose-500/30 bg-rose-500/10 text-rose-400",
+        name: { en: "Severe Burn", hi: "गंभीर रूप से जलना", kn: "ತೀವ್ರ ಸುಟ್ಟ ಗಾಯ" },
+        symptoms: {
+          en: "Blistering, charred skin, white or leathery appearance, intense pain or numbness.",
+          hi: "त्वचा का झुलसना/काला पड़ना, सफेद या कठोर त्वचा, तीव्र दर्द या सुन्नता।",
+          kn: "ಸುಟ್ಟ ಚರ್ಮ, ಬಿಳಿ ಅಥವಾ ಕಪ್ಪು ಬಣ್ಣಕ್ಕೆ ತಿರುಗುವುದು, ತೀವ್ರ ನೋವು."
+        },
+        recovery: { en: "4+ weeks (Requires specialist care)", hi: "4+ सप्ताह (विशेषज्ञ की आवश्यकता)", kn: "4+ ವಾರಗಳು (ವಿಶೇಷ ಚಿಕಿತ್ಸೆ ಅಗತ್ಯ)" },
+        steps: {
+          en: ["Call emergency services immediately.", "Do not apply cold water or ice to wide severe burns.", "Do not remove burned clothing stuck to skin.", "Cover loosely with clean cloth."],
+          hi: ["तुरंत एम्बुलेंस या डॉक्टर को बुलाएं।", "बर्फ या ठंडा पानी बिल्कुल न डालें।", "त्वचा से चिपके कपड़े न निकालें।", "साफ कपड़े से ढीला ढकें।"],
+          kn: ["ತಕ್ಷಣ ತುರ್ತು ವೈದ್ಯಕೀಯ ಸೇವೆಗೆ ಕರೆ ಮಾಡಿ.", "ಮಂಜುಗಡ್ಡೆ ಅಥವಾ ತಣ್ಣೀರನ್ನು ಹಾಕಬೇಡಿ.", "ಚರ್ಮಕ್ಕೆ ಅಂಟಿಕೊಂಡಿರುವ ಬಟ್ಟೆಯನ್ನು ತೆಗೆಯಬೇಡಿ.", "ಸ್ವಚ್ಛ ಬಟ್ಟೆಯಿಂದ ಮುಚ್ಚಿ."]
+        }
+      },
+      "Normal Skin": {
+        severity: { en: "None", hi: "कोई नहीं", kn: "ಏನೂ ಇಲ್ಲ" },
+        severityColor: "border-slate-500/30 bg-slate-500/10 text-slate-400",
+        name: { en: "Normal Skin", hi: "सामान्य त्वचा", kn: "ಸಾಮಾನ್ಯ ಚರ್ಮ" },
+        symptoms: {
+          en: "No evident cutaneous injury, swelling, or active lesions.",
+          hi: "त्वचा पर कोई चोट, सूजन या लालिमा नहीं है।",
+          kn: "ಚರ್ಮದಲ್ಲಿ ಯಾವುದೇ ಗಾಯ ಅಥವಾ ಬಾಪು ಕಂಡುಬಂದಿಲ್ಲ."
+        },
+        recovery: { en: "N/A", hi: "लागू नहीं", kn: "ಅನ್ವಯಿಸುವುದಿಲ್ಲ" },
+        steps: {
+          en: ["No first aid required.", "Maintain clean hygiene."],
+          hi: ["किसी प्राथमिक उपचार की आवश्यकता नहीं है।", "त्वचा की सफाई बनाए रखें।"],
+          kn: ["ಯಾವುದೇ ಪ್ರಥಮ ಚಿಕಿತ್ಸೆ ಅಗತ್ಯವಿಲ್ಲ.", "ಚರ್ಮದ ನೈರ್ಮಲ್ಯವನ್ನು ಕಾಯ್ದುಕೊಳ್ಳಿ."]
+        }
+      }
+    };
+
+    // Engine Initialization
     async function initModel() {
       const badge = document.getElementById('statusBadge');
       try {
         model = await tmImage.load(MODEL_PATH + "model.json", MODEL_PATH + "metadata.json");
         badge.className = "text-xs font-medium px-3 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 flex items-center gap-2";
-        badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span> Engine Ready`;
+        document.getElementById('uiStatusText').innerText = UI_TRANSLATIONS[currentLanguage].statusReady;
       } catch (err) {
         console.error(err);
         badge.className = "text-xs font-medium px-3 py-1.5 rounded-full border border-rose-500/30 bg-rose-500/10 text-rose-400 flex items-center gap-2";
-        badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-500"></span> Model Loading Failed`;
+        document.getElementById('uiStatusText').innerText = UI_TRANSLATIONS[currentLanguage].statusFailed;
       }
     }
 
-    window.addEventListener('DOMContentLoaded', initModel);
+    window.addEventListener('DOMContentLoaded', () => {
+      initModel();
+      updateStaticUI();
+    });
 
+    // Language Toggle logic
+    function changeLanguage(lang) {
+      currentLanguage = lang;
+      updateStaticUI();
+      if (currentRawCondition) {
+        renderGuidance(currentRawCondition);
+      }
+    }
+
+    function updateStaticUI() {
+      const strings = UI_TRANSLATIONS[currentLanguage];
+      document.getElementById('uiHeaderTitle').innerText = strings.title;
+      document.getElementById('uiHeaderSub').innerText = strings.sub;
+      document.getElementById('uiUploadText').innerText = strings.uploadTitle;
+      document.getElementById('uiUploadSubText').innerText = strings.uploadSub;
+      document.getElementById('uiReuploadBtn').innerText = strings.reupload;
+      document.getElementById('uiGuidanceHeader').innerText = strings.guidanceHeader;
+      document.getElementById('emptyState').innerText = strings.emptyState;
+      document.getElementById('uiDetectedLabel').innerText = strings.detectedLabel;
+      document.getElementById('uiSymptomsLabel').innerText = strings.symptomsLabel;
+      document.getElementById('uiRecoveryLabel').innerText = strings.recoveryLabel;
+      document.getElementById('uiTreatmentLabel').innerText = strings.treatmentLabel;
+      document.getElementById('uiDisclaimer').innerText = strings.disclaimer;
+      
+      const talkBtnLabel = document.getElementById('talkBtnLabel');
+      talkBtnLabel.innerText = isSpeaking ? strings.talkStop : strings.talkListen;
+
+      if (model) {
+        document.getElementById('uiStatusText').innerText = strings.statusReady;
+      }
+    }
+
+    // Image Upload & Classifier Logic
     async function handleImageUpload(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -250,49 +410,96 @@
       document.getElementById('previewWrapper').classList.remove('hidden');
 
       if (!model) {
-        alert("Model is still initializing or missing in `./model/`. Check files in repo.");
+        alert("Model engine loading or missing in ./model/");
         return;
       }
 
       imgEl.onload = async () => {
         const predictions = await model.predict(imgEl);
-        
-        // Find single top match
         predictions.sort((a, b) => b.probability - a.probability);
-        const topPrediction = predictions[0].className;
-
-        renderGuidance(topPrediction);
+        currentRawCondition = predictions[0].className;
+        renderGuidance(currentRawCondition);
       };
     }
 
-    function renderGuidance(className) {
-      const info = MEDICAL_PROTOCOLS[className] || {
-        severity: "Unknown",
-        severityColor: "border-slate-500/30 bg-slate-500/10 text-slate-400",
-        symptoms: "N/A",
-        recovery: "N/A",
-        steps: ["Consult a physician for further diagnostic evaluation."]
-      };
+    // Guidance Renderer
+    function renderGuidance(rawCondition) {
+      stopSpeech();
+      const item = MEDICAL_DATA[rawCondition];
+      const lang = currentLanguage;
+      const strings = UI_TRANSLATIONS[lang];
 
       document.getElementById('emptyState').classList.add('hidden');
       document.getElementById('guidanceCard').classList.remove('hidden');
+      document.getElementById('talkBtn').classList.remove('hidden');
 
-      document.getElementById('detectedClass').innerText = className;
+      document.getElementById('detectedClass').innerText = item.name[lang] || item.name['en'];
       
       const badge = document.getElementById('severityBadge');
-      badge.innerText = `Severity: ${info.severity}`;
-      badge.className = `text-xs font-bold px-3 py-1 rounded-full border ${info.severityColor}`;
+      badge.innerText = `${strings.severityPrefix}${item.severity[lang] || item.severity['en']}`;
+      badge.className = `text-xs font-bold px-3 py-1 rounded-full border ${item.severityColor}`;
 
-      document.getElementById('symptomsText').innerText = info.symptoms;
-      document.getElementById('recoveryText').innerText = info.recovery;
+      document.getElementById('symptomsText').innerText = item.symptoms[lang] || item.symptoms['en'];
+      document.getElementById('recoveryText').innerText = item.recovery[lang] || item.recovery['en'];
 
       const listEl = document.getElementById('treatmentList');
       listEl.innerHTML = "";
-      info.steps.forEach(step => {
+      const stepsList = item.steps[lang] || item.steps['en'];
+      stepsList.forEach(step => {
         const li = document.createElement('li');
         li.innerText = step;
         listEl.appendChild(li);
       });
+    }
+
+    // Offline Text-to-Speech Engine via Web Speech API
+    function toggleSpeech() {
+      if (isSpeaking) {
+        stopSpeech();
+      } else {
+        startSpeech();
+      }
+    }
+
+    function startSpeech() {
+      if (!('speechSynthesis' in window) || !currentRawCondition) return;
+      
+      window.speechSynthesis.cancel(); // Stop prior audio if any
+
+      const item = MEDICAL_DATA[currentRawCondition];
+      const lang = currentLanguage;
+      const strings = UI_TRANSLATIONS[lang];
+
+      const stepsList = (item.steps[lang] || item.steps['en']).join('. ');
+      const speechText = `${strings.detectedLabel}: ${item.name[lang]}. ${strings.severityPrefix} ${item.severity[lang]}. ${strings.symptomsLabel}: ${item.symptoms[lang]}. ${strings.treatmentLabel}: ${stepsList}`;
+
+      const utterance = new SpeechSynthesisUtterance(speechText);
+      
+      // Set language codes (en-US, hi-IN, kn-IN)
+      if (lang === 'hi') utterance.lang = 'hi-IN';
+      else if (lang === 'kn') utterance.lang = 'kn-IN';
+      else utterance.lang = 'en-US';
+
+      utterance.onend = () => stopSpeech();
+      utterance.onerror = () => stopSpeech();
+
+      window.speechSynthesis.speak(utterance);
+      isSpeaking = true;
+
+      document.getElementById('talkBtnLabel').innerText = strings.talkStop;
+      document.getElementById('talkBtn').classList.add('bg-rose-600/20', 'border-rose-500/30', 'text-rose-300');
+    }
+
+    function stopSpeech() {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+      isSpeaking = false;
+      const talkBtn = document.getElementById('talkBtn');
+      if (talkBtn) {
+        talkBtn.classList.remove('bg-rose-600/20', 'border-rose-500/30', 'text-rose-300');
+      }
+      document.getElementById('talkBtnLabel').innerText = UI_TRANSLATIONS[currentLanguage].talkListen;
     }
   </script>
 </body>
