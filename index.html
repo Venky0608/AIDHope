@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AID - Medical Skin Classifier</title>
+  <title>AID - Medical Skin Diagnostics</title>
   
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -12,133 +12,113 @@
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.7.4/dist/tf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8.3/dist/teachablemachine-image.min.js"></script>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased">
 
   <!-- Header -->
-  <header class="border-b border-slate-800 bg-slate-950/50 backdrop-blur py-4 px-6 flex justify-between items-center">
-    <div class="flex items-center space-x-2">
-      <span class="bg-indigo-600 text-xs font-bold px-2.5 py-1 rounded-md text-white tracking-wide">AID</span>
-      <h1 class="text-xl font-semibold">Skin Diagnostics AI</h1>
+  <header class="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-50 px-6 py-4 flex justify-between items-center">
+    <div class="flex items-center space-x-3">
+      <div class="bg-gradient-to-tr from-indigo-600 to-violet-500 text-xs font-black px-3 py-1.5 rounded-lg text-white tracking-widest shadow-lg shadow-indigo-500/20">
+        AID
+      </div>
+      <div>
+        <h1 class="text-lg font-bold text-slate-100 leading-none">Skin Diagnostics AI</h1>
+        <p class="text-[11px] text-slate-400 mt-0.5">Automated Clinical Analysis</p>
+      </div>
     </div>
-    <span class="text-xs text-slate-400 bg-slate-800 px-3 py-1 rounded-full border border-slate-700">MobileNetV2 Engine</span>
+    <div id="statusBadge" class="text-xs font-medium px-3 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400 flex items-center gap-2">
+      <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+      <span>Initializing Model...</span>
+    </div>
   </header>
 
   <!-- Main Container -->
-  <main class="flex-1 max-w-4xl w-full mx-auto p-6 flex flex-col gap-6">
+  <main class="flex-1 max-w-6xl w-full mx-auto p-6 grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
 
-    <!-- Model Source Config Tab -->
-    <section class="bg-slate-800/50 border border-slate-700/60 rounded-xl p-5">
-      <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3">1. Model Configuration</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <!-- Upload & Image Preview Section -->
+    <section class="md:col-span-5 bg-slate-900/50 border border-slate-800 rounded-2xl p-5 flex flex-col items-center justify-center min-h-[380px] relative overflow-hidden">
+      <input type="file" id="imageInput" accept="image/*" class="hidden" onchange="handleImageUpload(event)" />
+      
+      <!-- Upload Dropzone -->
+      <div id="uploadPlaceholder" onclick="document.getElementById('imageInput').click()" 
+           class="cursor-pointer text-center p-8 w-full border-2 border-dashed border-slate-700/80 hover:border-indigo-500/60 hover:bg-indigo-500/5 rounded-xl transition duration-200 group flex flex-col items-center justify-center">
+        <div class="w-14 h-14 bg-slate-800 group-hover:bg-indigo-600/20 text-slate-400 group-hover:text-indigo-400 rounded-2xl flex items-center justify-center mb-4 transition">
+          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+          </svg>
+        </div>
+        <p class="text-sm font-semibold text-slate-200 group-hover:text-indigo-300">Click or drag image to analyze</p>
+        <p class="text-xs text-slate-500 mt-1">Supports JPG, PNG, WEBP</p>
+      </div>
+
+      <!-- Preview Image Frame -->
+      <div id="previewWrapper" class="hidden w-full flex flex-col items-center gap-4">
+        <img id="imagePreview" class="max-h-72 w-full object-contain rounded-xl border border-slate-800 bg-slate-950 shadow-inner" alt="Preview" />
+        <button onclick="document.getElementById('imageInput').click()" class="text-xs text-indigo-400 hover:text-indigo-300 font-medium underline underline-offset-4">
+          Upload different photo
+        </button>
+      </div>
+    </section>
+
+    <!-- Results Panel -->
+    <section class="md:col-span-7 bg-slate-900/50 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between min-h-[380px]">
+      <div>
+        <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-800">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Diagnostic Probabilities</h2>
+          <span id="topMatchBadge" class="hidden text-xs font-semibold px-2.5 py-1 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20"></span>
+        </div>
         
-        <!-- Hosted Model Option -->
-        <div class="flex flex-col gap-2">
-          <label class="text-xs font-medium text-slate-300">Option A: Model Folder Path / Public URL</label>
-          <div class="flex gap-2">
-            <input type="text" id="modelUrlInput" value="./model/" placeholder="./model/" class="bg-slate-900 text-slate-200 border border-slate-700 rounded-lg px-3 py-2 text-sm w-full focus:outline-none focus:border-indigo-500" />
-            <button onclick="loadFromUrl()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm px-4 py-2 rounded-lg transition">Load</button>
+        <div id="resultsContainer" class="flex flex-col gap-3.5">
+          <div class="text-center py-12 text-slate-500 text-sm">
+            Upload an image to start classification.
           </div>
         </div>
-
-        <!-- Local Upload Option -->
-        <div class="flex flex-col gap-2">
-          <label class="text-xs font-medium text-slate-300">Option B: Upload (.json, .bin, metadata.json)</label>
-          <input type="file" id="localFilesInput" multiple accept=".json,.bin" class="block w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-700 file:text-slate-200 hover:file:bg-slate-600 cursor-pointer" />
-        </div>
-      </div>
-      <div id="modelStatus" class="mt-3 text-xs text-amber-400 flex items-center gap-2">
-        <span class="w-2 h-2 rounded-full bg-amber-400"></span> Model state: Not initialized
-      </div>
-    </section>
-
-    <!-- Diagnostics Console -->
-    <section class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1">
-      
-      <!-- Input Panel -->
-      <div class="bg-slate-800/50 border border-slate-700/60 rounded-xl p-5 flex flex-col items-center justify-center border-dashed border-2 relative min-h-[300px]">
-        <input type="file" id="imageInput" accept="image/*" class="hidden" onchange="handleImageUpload(event)" />
-        
-        <div id="uploadPlaceholder" onclick="document.getElementById('imageInput').click()" class="cursor-pointer text-center p-6 hover:opacity-80 transition">
-          <svg class="mx-auto h-12 w-12 text-slate-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-          </svg>
-          <p class="text-sm text-slate-300 font-medium">Click to upload skin image</p>
-          <p class="text-xs text-slate-500 mt-1">PNG, JPG, or WEBP</p>
-        </div>
-
-        <img id="imagePreview" class="hidden max-h-72 w-auto rounded-lg object-contain border border-slate-700" alt="Preview" />
       </div>
 
-      <!-- Results Panel -->
-      <div class="bg-slate-800/50 border border-slate-700/60 rounded-xl p-5 flex flex-col">
-        <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-4">Diagnostic Outputs</h2>
-        
-        <div id="resultsContainer" class="flex-1 flex flex-col gap-3 justify-center">
-          <p class="text-xs text-slate-500 text-center">Load a model and submit an image to calculate predictions.</p>
-        </div>
+      <!-- Disclaimer Footer -->
+      <div class="mt-6 pt-4 border-t border-slate-800/60 text-[11px] text-slate-500 flex items-start gap-2">
+        <svg class="w-4 h-4 text-slate-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <span>This tool provides automated visual predictions based on MobileNetV2 and is for educational/demo purposes only.</span>
       </div>
     </section>
+
   </main>
 
   <script>
     let model;
+    
+    // Automatic model load relative path (fetches automatically on load)
+    const MODEL_PATH = "./model/";
 
-    function setStatus(msg, state = 'warn') {
-      const el = document.getElementById('modelStatus');
-      const color = state === 'success' ? 'bg-emerald-400' : state === 'error' ? 'bg-rose-500' : 'bg-amber-400';
-      const textColor = state === 'success' ? 'text-emerald-400' : state === 'error' ? 'text-rose-400' : 'text-amber-400';
-      el.className = `mt-3 text-xs ${textColor} flex items-center gap-2`;
-      el.innerHTML = `<span class="w-2 h-2 rounded-full ${color}"></span> ${msg}`;
-    }
-
-    // Load hosted model URL
-    async function loadFromUrl() {
-      const url = document.getElementById('modelUrlInput').value.replace(/\/$/, "") + "/";
+    async function initModel() {
+      const badge = document.getElementById('statusBadge');
       try {
-        setStatus("Loading model...", "warn");
-        model = await tmImage.load(url + "model.json", url + "metadata.json");
-        setStatus("Model successfully loaded from path", "success");
+        model = await tmImage.load(MODEL_PATH + "model.json", MODEL_PATH + "metadata.json");
+        badge.className = "text-xs font-medium px-3 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 flex items-center gap-2";
+        badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span> Engine Ready`;
       } catch (err) {
-        setStatus("Failed to load model from path. Verify directory/files exist.", "error");
+        console.error(err);
+        badge.className = "text-xs font-medium px-3 py-1.5 rounded-full border border-rose-500/30 bg-rose-500/10 text-rose-400 flex items-center gap-2";
+        badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-500"></span> Model Loading Failed`;
       }
     }
 
-    // Load via File Input
-    document.getElementById('localFilesInput').addEventListener('change', async (e) => {
-      const files = e.target.files;
-      let modelFile, weightsFile, metadataFile;
+    // Initialize model immediately on page load
+    window.addEventListener('DOMContentLoaded', initModel);
 
-      for (let f of files) {
-        if (f.name === "model.json") modelFile = f;
-        else if (f.name.endsWith(".bin")) weightsFile = f;
-        else if (f.name === "metadata.json") metadataFile = f;
-      }
-
-      if (modelFile && weightsFile && metadataFile) {
-        try {
-          setStatus("Loading uploaded files...", "warn");
-          model = await tmImage.loadFromFiles(modelFile, weightsFile, metadataFile);
-          setStatus("Uploaded model initialized successfully", "success");
-        } catch (err) {
-          setStatus("Invalid or corrupted Teachable Machine files.", "error");
-        }
-      } else {
-        setStatus("Upload all 3 required files: model.json, weights.bin, metadata.json", "error");
-      }
-    });
-
-    // Handle Image Upload & Classification
     async function handleImageUpload(e) {
       const file = e.target.files[0];
       if (!file) return;
 
       const imgEl = document.getElementById('imagePreview');
       imgEl.src = URL.createObjectURL(file);
-      imgEl.classList.remove('hidden');
+      
       document.getElementById('uploadPlaceholder').classList.add('hidden');
+      document.getElementById('previewWrapper').classList.remove('hidden');
 
       if (!model) {
-        alert("Please load or upload a model first!");
+        alert("Model is still loading or failed to load. Please verify `./model/` repository files.");
         return;
       }
 
@@ -148,27 +128,31 @@
       };
     }
 
-    // Render Probabilities
     function displayPredictions(predictions) {
       const container = document.getElementById('resultsContainer');
+      const topBadge = document.getElementById('topMatchBadge');
       container.innerHTML = "";
 
-      // Sort by probability highest -> lowest
+      // Sort by probability descending
       predictions.sort((a, b) => b.probability - a.probability);
+
+      const topResult = predictions[0];
+      topBadge.innerText = `Top Match: ${topResult.className}`;
+      topBadge.classList.remove('hidden');
 
       predictions.forEach((item, idx) => {
         const percent = (item.probability * 100).toFixed(1);
         const isTop = idx === 0;
 
         const row = document.createElement('div');
-        row.className = "flex flex-col gap-1";
+        row.className = "flex flex-col gap-1.5";
         row.innerHTML = `
           <div class="flex justify-between text-xs font-medium">
-            <span class="${isTop ? 'text-indigo-400 font-bold' : 'text-slate-300'}">${item.className}</span>
+            <span class="${isTop ? 'text-indigo-300 font-bold' : 'text-slate-300'}">${item.className}</span>
             <span class="${isTop ? 'text-indigo-400 font-bold' : 'text-slate-400'}">${percent}%</span>
           </div>
-          <div class="w-full bg-slate-900 rounded-full h-2">
-            <div class="${isTop ? 'bg-indigo-500' : 'bg-slate-600'} h-2 rounded-full transition-all duration-300" style="width: ${percent}%"></div>
+          <div class="w-full bg-slate-950 rounded-full h-2.5 overflow-hidden border border-slate-800">
+            <div class="${isTop ? 'bg-gradient-to-r from-indigo-500 to-violet-500' : 'bg-slate-700'} h-full rounded-full transition-all duration-500 ease-out" style="width: ${percent}%"></div>
           </div>
         `;
         container.appendChild(row);
