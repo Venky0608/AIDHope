@@ -1,0 +1,1 @@
+{"tfjsVersion":"1.7.4","tmVersion":"2.4.10","packageVersion":"0.8.4-alpha2","packageName":"@teachablemachine/image","timeStamp":"2025-07-30T17:05:04.350Z","userMetadata":{},"modelName":"AID","labels":["Mild Cut","Severe Cut","Mild Bruise","Severe Bruis...","Mild Rash","Severe Rash","Mild Burn","Severe Burn","Normal Skin"],"imageSize":224}
