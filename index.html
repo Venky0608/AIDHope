@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AID - Medical Skin Diagnostics</title>
+  <title>AID - AI Injury Detector</title>
   
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -21,13 +21,13 @@
         AID
       </div>
       <div>
-        <h1 class="text-lg font-bold text-slate-100 leading-none">Skin Diagnostics AI</h1>
-        <p class="text-[11px] text-slate-400 mt-0.5">Automated Clinical Analysis</p>
+        <h1 class="text-lg font-bold text-slate-100 leading-none">AI Injury Detector</h1>
+        <p class="text-[11px] text-slate-400 mt-0.5">Automated First Aid Assessment</p>
       </div>
     </div>
     <div id="statusBadge" class="text-xs font-medium px-3 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400 flex items-center gap-2">
       <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-      <span>Initializing Model...</span>
+      <span>Initializing Engine...</span>
     </div>
   </header>
 
@@ -35,7 +35,7 @@
   <main class="flex-1 max-w-6xl w-full mx-auto p-6 grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
 
     <!-- Upload & Image Preview Section -->
-    <section class="md:col-span-5 bg-slate-900/50 border border-slate-800 rounded-2xl p-5 flex flex-col items-center justify-center min-h-[380px] relative overflow-hidden">
+    <section class="md:col-span-5 bg-slate-900/50 border border-slate-800 rounded-2xl p-5 flex flex-col items-center justify-center min-h-[420px] relative overflow-hidden">
       <input type="file" id="imageInput" accept="image/*" class="hidden" onchange="handleImageUpload(event)" />
       
       <!-- Upload Dropzone -->
@@ -52,24 +52,51 @@
 
       <!-- Preview Image Frame -->
       <div id="previewWrapper" class="hidden w-full flex flex-col items-center gap-4">
-        <img id="imagePreview" class="max-h-72 w-full object-contain rounded-xl border border-slate-800 bg-slate-950 shadow-inner" alt="Preview" />
+        <img id="imagePreview" class="max-h-80 w-full object-contain rounded-xl border border-slate-800 bg-slate-950 shadow-inner" alt="Preview" />
         <button onclick="document.getElementById('imageInput').click()" class="text-xs text-indigo-400 hover:text-indigo-300 font-medium underline underline-offset-4">
           Upload different photo
         </button>
       </div>
     </section>
 
-    <!-- Results Panel -->
-    <section class="md:col-span-7 bg-slate-900/50 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between min-h-[380px]">
-      <div>
+    <!-- Results & First Aid Guidance Panel -->
+    <section class="md:col-span-7 bg-slate-900/50 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between min-h-[420px]">
+      <div id="resultsContent">
         <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-800">
-          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Diagnostic Probabilities</h2>
-          <span id="topMatchBadge" class="hidden text-xs font-semibold px-2.5 py-1 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20"></span>
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Diagnosis & First Aid Guidance</h2>
         </div>
         
-        <div id="resultsContainer" class="flex flex-col gap-3.5">
-          <div class="text-center py-12 text-slate-500 text-sm">
-            Upload an image to start classification.
+        <div id="emptyState" class="text-center py-16 text-slate-500 text-sm">
+          Upload an image to detect injury type and generate treatment instructions.
+        </div>
+
+        <div id="guidanceCard" class="hidden flex flex-col gap-5">
+          <!-- Primary Diagnosis Header -->
+          <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl flex items-center justify-between">
+            <div>
+              <span class="text-xs text-slate-400 font-medium uppercase tracking-wider">Detected Condition</span>
+              <h3 id="detectedClass" class="text-2xl font-extrabold text-white mt-0.5">---</h3>
+            </div>
+            <span id="severityBadge" class="text-xs font-bold px-3 py-1 rounded-full border">---</span>
+          </div>
+
+          <!-- Metadata Grid -->
+          <div class="grid grid-cols-2 gap-4">
+            <div class="bg-slate-950/60 border border-slate-800/80 p-3.5 rounded-xl">
+              <span class="text-[11px] font-semibold text-slate-400 uppercase block mb-1">Expected Symptoms</span>
+              <p id="symptomsText" class="text-xs text-slate-200 leading-relaxed">---</p>
+            </div>
+            <div class="bg-slate-950/60 border border-slate-800/80 p-3.5 rounded-xl">
+              <span class="text-[11px] font-semibold text-slate-400 uppercase block mb-1">Estimated Recovery</span>
+              <p id="recoveryText" class="text-xs text-slate-200 leading-relaxed">---</p>
+            </div>
+          </div>
+
+          <!-- First Aid Protocol -->
+          <div class="bg-slate-950/60 border border-slate-800/80 p-4 rounded-xl">
+            <span class="text-xs font-bold uppercase tracking-wider text-indigo-400 block mb-3">Recommended First Aid Steps</span>
+            <ol id="treatmentList" class="list-decimal list-inside text-xs text-slate-300 space-y-2">
+            </ol>
           </div>
         </div>
       </div>
@@ -79,7 +106,7 @@
         <svg class="w-4 h-4 text-slate-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
         </svg>
-        <span>This tool provides automated visual predictions based on MobileNetV2 and is for educational/demo purposes only.</span>
+        <span>This tool provides primary visual classification only. Seek emergency medical attention for severe, deep, or non-responsive injuries.</span>
       </div>
     </section>
 
@@ -87,9 +114,115 @@
 
   <script>
     let model;
-    
-    // Automatic model load relative path (fetches automatically on load)
     const MODEL_PATH = "./model/";
+
+    // Medical Protocol Mapping
+    const MEDICAL_PROTOCOLS = {
+      "Mild Cut": {
+        severity: "Low",
+        severityColor: "border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
+        symptoms: "Minor bleeding, mild localized pain, slight redness around edges.",
+        recovery: "3 to 7 days",
+        steps: [
+          "Wash hands thoroughly before treating the area.",
+          "Apply gentle pressure with a clean cloth to stop minor bleeding.",
+          "Rinse the wound thoroughly with cool water and mild soap.",
+          "Apply a thin layer of antibacterial ointment.",
+          "Cover with a sterile adhesive bandage."
+        ]
+      },
+      "Severe Cut": {
+        severity: "High",
+        severityColor: "border-rose-500/30 bg-rose-500/10 text-rose-400",
+        symptoms: "Continuous bleeding, visible subcutaneous fat or muscle, intense sharp pain.",
+        recovery: "2 to 4 weeks (Requires stitches)",
+        steps: [
+          "Apply firm, continuous direct pressure with a clean cloth or bandage.",
+          "Elevate the injured area above the heart if possible.",
+          "Do not remove embedded objects if present.",
+          "Seek immediate emergency medical assistance or go to urgent care."
+        ]
+      },
+      "Mild Bruise": {
+        severity: "Low",
+        severityColor: "border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
+        symptoms: "Blue/purple discoloration, mild tenderness to touch, minor swelling.",
+        recovery: "1 to 2 weeks",
+        steps: [
+          "Apply a cold pack wrapped in a cloth to the area for 15–20 minutes at a time.",
+          "Rest the affected limb or area to prevent further inflammation.",
+          "After 48 hours, apply warm compresses to improve circulation and speed up healing."
+        ]
+      },
+      "Severe Bruise": {
+        severity: "Moderate to High",
+        severityColor: "border-amber-500/30 bg-amber-500/10 text-amber-400",
+        symptoms: "Extensive dark purple/black swelling, severe pain upon movement, firmness underneath skin.",
+        recovery: "3 to 6 weeks",
+        steps: [
+          "Apply ice packs immediately for 20 minutes every 2 hours.",
+          "Elevate the area above heart level to reduce blood pooling.",
+          "Avoid strenuous activity involving the bruised area.",
+          "Consult a healthcare professional if swelling expands rapidly or numbness occurs."
+        ]
+      },
+      "Mild Rash": {
+        severity: "Low",
+        severityColor: "border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
+        symptoms: "Localized redness, slight itchiness, small bumps without fluid.",
+        recovery: "3 to 5 days",
+        steps: [
+          "Wash gently with cool water and a mild, fragrance-free cleanser.",
+          "Apply hydrocortisone cream or calamine lotion to relieve itching.",
+          "Avoid scratching the skin to prevent secondary bacterial infection."
+        ]
+      },
+      "Severe Rash": {
+        severity: "High",
+        severityColor: "border-rose-500/30 bg-rose-500/10 text-rose-400",
+        symptoms: "Widespread blistering, extreme itching/burning, fever, spreading redness.",
+        recovery: "1 to 3 weeks",
+        steps: [
+          "Apply cool, damp compresses to soothe inflamed skin.",
+          "Do not pop or drain any formed blisters.",
+          "Avoid all potential chemical or cosmetic irritants.",
+          "Consult a doctor immediately for oral antihistamines or prescription steroid treatment."
+        ]
+      },
+      "Mild Burn": {
+        severity: "Low to Moderate",
+        severityColor: "border-amber-500/30 bg-amber-500/10 text-amber-400",
+        symptoms: "Redness, localized heat, minor swelling, pain without open blisters.",
+        recovery: "5 to 10 days",
+        steps: [
+          "Hold burned area under cool (not ice-cold) running water for 10–15 minutes.",
+          "Apply pure aloe vera gel or petroleum jelly to keep the skin hydrated.",
+          "Cover loosely with a sterile, non-stick gauze bandage."
+        ]
+      },
+      "Severe Burn": {
+        severity: "Critical",
+        severityColor: "border-rose-500/30 bg-rose-500/10 text-rose-400",
+        symptoms: "Blistering, charred skin, white or leathery appearance, intense pain or numbness.",
+        recovery: "4+ weeks (Requires specialist care)",
+        steps: [
+          "Call emergency medical services immediately.",
+          "Do not apply cold water or ice to wide/deep severe burns.",
+          "Do not remove burned clothing stuck to the skin.",
+          "Cover the burn loosely with a sterile, dry bandage or clean cloth."
+        ]
+      },
+      "Normal Skin": {
+        severity: "None",
+        severityColor: "border-slate-500/30 bg-slate-500/10 text-slate-400",
+        symptoms: "No evident cutaneous injury, swelling, or active lesions.",
+        recovery: "N/A",
+        steps: [
+          "No immediate first aid action is required.",
+          "Maintain daily skin hygiene and monitor for changes if pain or irritation develops."
+        ]
+      }
+    };
 
     async function initModel() {
       const badge = document.getElementById('statusBadge');
@@ -104,7 +237,6 @@
       }
     }
 
-    // Initialize model immediately on page load
     window.addEventListener('DOMContentLoaded', initModel);
 
     async function handleImageUpload(e) {
@@ -118,44 +250,48 @@
       document.getElementById('previewWrapper').classList.remove('hidden');
 
       if (!model) {
-        alert("Model is still loading or failed to load. Please verify `./model/` repository files.");
+        alert("Model is still initializing or missing in `./model/`. Check files in repo.");
         return;
       }
 
       imgEl.onload = async () => {
         const predictions = await model.predict(imgEl);
-        displayPredictions(predictions);
+        
+        // Find single top match
+        predictions.sort((a, b) => b.probability - a.probability);
+        const topPrediction = predictions[0].className;
+
+        renderGuidance(topPrediction);
       };
     }
 
-    function displayPredictions(predictions) {
-      const container = document.getElementById('resultsContainer');
-      const topBadge = document.getElementById('topMatchBadge');
-      container.innerHTML = "";
+    function renderGuidance(className) {
+      const info = MEDICAL_PROTOCOLS[className] || {
+        severity: "Unknown",
+        severityColor: "border-slate-500/30 bg-slate-500/10 text-slate-400",
+        symptoms: "N/A",
+        recovery: "N/A",
+        steps: ["Consult a physician for further diagnostic evaluation."]
+      };
 
-      // Sort by probability descending
-      predictions.sort((a, b) => b.probability - a.probability);
+      document.getElementById('emptyState').classList.add('hidden');
+      document.getElementById('guidanceCard').classList.remove('hidden');
 
-      const topResult = predictions[0];
-      topBadge.innerText = `Top Match: ${topResult.className}`;
-      topBadge.classList.remove('hidden');
+      document.getElementById('detectedClass').innerText = className;
+      
+      const badge = document.getElementById('severityBadge');
+      badge.innerText = `Severity: ${info.severity}`;
+      badge.className = `text-xs font-bold px-3 py-1 rounded-full border ${info.severityColor}`;
 
-      predictions.forEach((item, idx) => {
-        const percent = (item.probability * 100).toFixed(1);
-        const isTop = idx === 0;
+      document.getElementById('symptomsText').innerText = info.symptoms;
+      document.getElementById('recoveryText').innerText = info.recovery;
 
-        const row = document.createElement('div');
-        row.className = "flex flex-col gap-1.5";
-        row.innerHTML = `
-          <div class="flex justify-between text-xs font-medium">
-            <span class="${isTop ? 'text-indigo-300 font-bold' : 'text-slate-300'}">${item.className}</span>
-            <span class="${isTop ? 'text-indigo-400 font-bold' : 'text-slate-400'}">${percent}%</span>
-          </div>
-          <div class="w-full bg-slate-950 rounded-full h-2.5 overflow-hidden border border-slate-800">
-            <div class="${isTop ? 'bg-gradient-to-r from-indigo-500 to-violet-500' : 'bg-slate-700'} h-full rounded-full transition-all duration-500 ease-out" style="width: ${percent}%"></div>
-          </div>
-        `;
-        container.appendChild(row);
+      const listEl = document.getElementById('treatmentList');
+      listEl.innerHTML = "";
+      info.steps.forEach(step => {
+        const li = document.createElement('li');
+        li.innerText = step;
+        listEl.appendChild(li);
       });
     }
   </script>
